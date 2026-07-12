@@ -10,46 +10,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Build inside Docker
         run: |
-          sudo apt update
-          sudo apt install -y wget make python3 python3-pip
+          docker run --rm \
+            -v ${{ github.workspace }}:/src \
+            -w /src \
+            devkitpro/devkitarm \
+            bash -c "
+              arm-none-eabi-gcc --version &&
+              python3 -m pip install -r requirements.txt &&
+              make modern
+            "
 
-      - name: Install devkitPro
-        run: |
-          wget https://apt.devkitpro.org/install-devkitpro-pacman
-          chmod +x install-devkitpro-pacman
-          sudo ./install-devkitpro-pacman
-
-      - name: Install devkitARM
-        run: |
-          sudo dkp-pacman -Syu --noconfirm
-          sudo dkp-pacman -S --noconfirm devkitARM gba-tools
-
-      - name: Setup environment
-        run: |
-          echo "DEVKITPRO=/opt/devkitpro" >> $GITHUB_ENV
-          echo "DEVKITARM=/opt/devkitpro/devkitARM" >> $GITHUB_ENV
-          echo "/opt/devkitpro/devkitARM/bin" >> $GITHUB_PATH
-
-      - name: Show compiler
-        run: |
-          arm-none-eabi-gcc --version
-
-      - name: Install Python packages
-        run: |
-          pip3 install -r requirements.txt
-
-      - name: Build
-        run: |
-          make modern
-
-      - name: Upload build
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
             *.gba
             *.elf
-            build/**/*.gba
-            build/**/*.elf
+            *.sym
+            *.map
