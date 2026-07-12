@@ -8,15 +8,21 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: devkitpro/devkitarm:latest
+      image: devkitpro/devkitpro:latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Show compiler
         run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          export PATH=$DEVKITARM/bin:$PATH
+
           arm-none-eabi-gcc --version
           make --version
+          python3 --version
 
       - name: Install Python packages
         run: |
@@ -24,6 +30,10 @@ jobs:
 
       - name: Build
         run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          export PATH=$DEVKITARM/bin:$PATH
+
           make modern
 
       - name: Upload build
@@ -35,5 +45,7 @@ jobs:
             *.elf
             *.map
             *.sym
+            build/**/*.gba
             build/**/*.elf
             build/**/*.map
+            build/**/*.sym
