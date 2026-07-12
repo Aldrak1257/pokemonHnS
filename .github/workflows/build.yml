@@ -1,4 +1,4 @@
-name: Build PokemonHnS
+name: Build Pokemon HnS
 
 on:
   workflow_dispatch:
@@ -8,14 +8,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Show repository
+      - name: Install devkitPro
         run: |
-          pwd
-          ls -la
+          sudo apt update
+          sudo apt install -y wget
+          wget https://apt.devkitpro.org/install-devkitpro-pacman
+          chmod +x install-devkitpro-pacman
+          sudo ./install-devkitpro-pacman
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm gba-dev
 
-      - name: Show Makefile
+      - name: Build
         run: |
-          head -40 Makefile
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          make modern
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            *.gba
+            *.elf
+            *.map
+            *.sym
