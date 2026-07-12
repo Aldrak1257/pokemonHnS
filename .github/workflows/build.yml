@@ -8,8 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Build inside Docker
         run: |
@@ -22,25 +21,24 @@ jobs:
               export DEVKITARM=$DEVKITPRO/devkitARM
               export PATH=$DEVKITARM/bin:$PATH
 
-              arm-none-eabi-gcc --version
-              make --version
-              python3 --version
+              apt-get update
+              apt-get install -y python3-pip libpng-dev zlib1g-dev pkg-config
 
               python3 -m pip install -r requirements.txt
+
+              make -C tools/gbagfx
+              make -C tools/preproc
+              make -C tools/scaninc
 
               make modern
             '
 
-      - name: Upload build
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: |
-            *.gba
-            *.elf
-            *.sym
-            *.map
-            build/**/*.gba
-            build/**/*.elf
-            build/**/*.sym
-            build/**/*.map
+            **/*.gba
+            **/*.elf
+            **/*.sym
+            **/*.map
